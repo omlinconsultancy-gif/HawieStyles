@@ -2222,7 +2222,7 @@ function bindEvents(){
         if(imgEl) imgEl.src = url;
       }catch(err){
         console.error("Photo upload failed", err);
-        alert("Photo upload failed. Check your connection and Firebase Storage setup, then try again.");
+        alert(`Photo upload failed: ${err.code || err.message || "unknown error"}\n\nCheck your connection and Firebase Storage setup, then try again.`);
       }finally{
         if(btn){ btn.textContent = originalLabel; btn.disabled = false; }
       }
@@ -3278,7 +3278,7 @@ function renderStoreSettings(){
       await setDoc(doc(db,"settings","store"), { logoUrl: url }, { merge:true });
     }catch(err){
       console.error("Logo upload failed", err);
-      alert("Logo upload failed. Check your connection and Firebase Storage setup, then try again.");
+      alert(`Logo upload failed: ${err.code || err.message || "unknown error"}\n\nCheck your connection and Firebase Storage setup, then try again.`);
     }finally{
       btn.disabled = false; btn.textContent = "Upload / Change Logo";
     }
