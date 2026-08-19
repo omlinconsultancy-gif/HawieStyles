@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    match /customers/{uid} {
+      // A customer can read/write their own profile.
+      // The admin can read (list) every customer profile for the dashboard.
+      allow read: if request.auth != null &&
+        (request.auth.uid == uid || request.auth.token.email == 'timeless.elegance.ke@outlook.com');
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /carts/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /wishlists/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    match /orders/{orderId} {
+      // Customers can create their own order (uid matches). The admin can
+      // also create orders directly — needed for POS / in-store sales,
+      // which are entered by the admin on behalf of a customer (or a
+      // walk-in with no account, where uid is null) and would otherwise
+      // never match request.auth.uid.
+      allow create: if request.auth != null &&
+        (request.auth.uid == request.resource.data.uid || request.auth.token.email == 'timeless.elegance.ke@outlook.com');
+      allow read: if request.auth != null &&
+        (resource.data.uid == request.auth.uid || request.auth.token.email == 'timeless.elegance.ke@outlook.com');
+      allow update: if request.auth != null && request.auth.token.email == 'timeless.elegance.ke@outlook.com';
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      allow delete: if request.auth != null && request.auth.token.email == 'timeless.elegance.ke@outlook.com';
+    }
+
+    match /notifications/{notifId} {
+      allow create: if request.auth != null &&
+        (request.auth.uid == request.resource.data.uid || request.auth.token.email == 'timeless.elegance.ke@outlook.com');
+      allow read, update: if request.auth != null &&
+        (resource.data.uid == request.auth.uid || request.auth.token.email == 'timeless.elegance.ke@outlook.com');
+    }
+
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == 'timeless.elegance.ke@outlook.com';
+    }
+
+    // Admin-only back-office collections (Suppliers, Purchases, Expenses pages).
+    // The app lists these collections in full, so they need explicit rules
+    // rather than falling through to the default deny.
+    match /suppliers/{supplierId} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'timeless.elegance.ke@outlook.com';
+    }
+
+    match /purchases/{purchaseId} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'timeless.elegance.ke@outlook.com';
+    }
+
+    match /expenses/{expenseId} {
+      allow read, write: if request.auth != null && request.auth.token.email == 'timeless.elegance.ke@outlook.com';
+    }
+  }
+}
